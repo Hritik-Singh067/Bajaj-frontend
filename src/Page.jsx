@@ -1,17 +1,21 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 
 function ApiDataComponent() {
     const [inputData, setInputData] = useState('');
     const [responseData, setResponseData] = useState(null);
-    const [selectedOption, setSelectedOption] = useState('numbers');
+    const [selectedOptions, setSelectedOptions] = useState([]);
     const [error, setError] = useState('');
 
     const handleInputChange = (e) => {
         setInputData(e.target.value);
     };
 
-    const handleOptionChange = (e) => {
-        setSelectedOption(e.target.value);
+    const handleOptionClick = (option) => {
+        setSelectedOptions(prevSelected =>
+            prevSelected.includes(option)
+                ? prevSelected.filter(item => item !== option)
+                : [...prevSelected, option]
+        );
     };
 
     const handleSubmit = async () => {
@@ -44,20 +48,31 @@ function ApiDataComponent() {
     };
 
     const renderResponseData = () => {
-        if (!responseData) return null;
+        if (!responseData || selectedOptions.length === 0) return null;
 
         const { numbers, alphabets, highest_lowercase_alphabet } = responseData;
-
-        switch (selectedOption) {
-            case 'numbers':
-                return numbers.length > 0 ? numbers.join(', ') : 'No numbers found';
-            case 'alphabets':
-                return alphabets.length > 0 ? alphabets.join(', ') : 'No alphabets found';
-            case 'highest_lowercase_alphabet':
-                return highest_lowercase_alphabet.length > 0 ? highest_lowercase_alphabet.join(', ') : 'No lowercase alphabet found';
-            default:
-                return 'Select a valid option';
-        }
+        return selectedOptions.map(option => {
+            let displayData;
+            switch (option) {
+                case 'numbers':
+                    displayData = numbers.length > 0 ? numbers.join(', ') : 'No numbers found';
+                    break;
+                case 'alphabets':
+                    displayData = alphabets.length > 0 ? alphabets.join(', ') : 'No alphabets found';
+                    break;
+                case 'highest_lowercase_alphabet':
+                    displayData = highest_lowercase_alphabet.length > 0 ? highest_lowercase_alphabet.join(', ') : 'No lowercase alphabet found';
+                    break;
+                default:
+                    displayData = 'Invalid option selected';
+            }
+            return (
+                <div key={option}>
+                    <h3>{option.charAt(0).toUpperCase() + option.slice(1)}:</h3>
+                    <p>{displayData}</p>
+                </div>
+            );
+        });
     };
 
     return (
@@ -71,21 +86,47 @@ function ApiDataComponent() {
                 style={{ width: '100%' }}
             />
             <button onClick={handleSubmit}>Submit</button>
-            
+
             {error && <p style={{ color: 'red' }}>{error}</p>}
 
             <div>
-                <label htmlFor="data-type">Select Data Type:</label>
-                <select id="data-type" value={selectedOption} onChange={handleOptionChange}>
-                    <option value="numbers">Numbers</option>
-                    <option value="alphabets">Alphabets</option>
-                    <option value="highest_lowercase_alphabet">Highest Lowercase Alphabet</option>
-                </select>
+                <label>Select Data Type:</label>
+                <div>
+                    <button
+                        onClick={() => handleOptionClick('numbers')}
+                        style={{
+                            backgroundColor: selectedOptions.includes('numbers') ? 'black' : 'grey',
+                            color: "white",
+                            marginRight: "10px"
+                        }}
+                    >
+                        Numbers
+                    </button>
+                    <button
+                        onClick={() => handleOptionClick('alphabets')}
+                        style={{
+                            backgroundColor: selectedOptions.includes('alphabets') ? 'black' : 'grey',
+                            color: "white",
+                            marginRight: "10px"
+                        }}
+                    >
+                        Alphabets
+                    </button>
+                    <button
+                        onClick={() => handleOptionClick('highest_lowercase_alphabet')}
+                        style={{
+                            backgroundColor: selectedOptions.includes('highest_lowercase_alphabet') ? 'black' : 'grey',
+                            color: "white"
+                        }}
+                    >
+                        Highest Lowercase Alphabet
+                    </button>
+                </div>
             </div>
 
             <div>
                 <h2>Response Data:</h2>
-                <p>{renderResponseData()}</p>
+                {renderResponseData()}
             </div>
         </div>
     );
